@@ -12,7 +12,7 @@ import { Button } from "@pixi/ui";
 (async () => {
   // Create a new application
   const app = new Application();
-  const apples = [];
+  let apples = [];
   // Initialize the application
   await app.init({ background: "#1099bb", resizeTo: window });
 
@@ -91,7 +91,7 @@ import { Button } from "@pixi/ui";
   btnContainer.on("pointerdown", () => {
     start = true;
   });
-
+  let level = 1;
   app.stage.addChild(btnContainer);
 
   app.stage.addChild(counter);
@@ -103,8 +103,24 @@ import { Button } from "@pixi/ui";
   let busket_speed = 15;
   let apple_count = 5;
   let apple_speed = 2;
+  let gameLevel = 1;
   addApples(app, apples, apple_count, apple_speed);
-
+  function restartGame() {
+    alert("u lost jimaaaaa");
+    app.stage.removeChildren();
+    apples = [];
+    score = 0;
+    start = false;
+    busket_speed = 15;
+    apple_count = 5;
+    apple_speed = 2;
+    startingText = "Click to start level 1";
+    app.stage.addChild(busket);
+    app.stage.addChild(button);
+    app.stage.addChild(counter);
+    app.stage.addChild(btnContainer);
+    addApples(app, apples, apple_count, apple_speed);
+  }
   app.stage.addChild(button);
   app.stage.addChild(busket);
   app.ticker.add((time) => {
@@ -128,21 +144,25 @@ import { Button } from "@pixi/ui";
       const basketRight = busket.x + busket.width / 2;
       const basketTop = busket.y - busket.height / 2;
       const basketBottom = busket.y + busket.height / 2;
-      if (
+      const touchLogic =
         appleRight > basketLeft &&
         appleLeft < basketRight &&
         appleBottom > basketTop &&
-        appleTop < basketBottom - 20
-      ) {
+        appleTop < basketBottom - 20;
+      if (touchLogic) {
         app.stage.removeChild(apple);
         if (app) score++;
         apples.splice(i, 1);
         counter.text = score.toString();
       }
+      if (!touchLogic && apple.y > basketBottom) {
+        restartGame();
+      }
       if (apples.length < 1) {
+        gameLevel++;
         start = false;
-        alert("well done now level 2");
-        startingText = `click to start level 2`;
+        alert(`well done now level ${gameLevel}`);
+        startingText = `click to start level ${gameLevel}`;
         apple_speed += 1;
         apple_count += 2;
         busket_speed += 0.5;

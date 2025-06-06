@@ -1,5 +1,14 @@
-import { Application, Assets, Text, Sprite } from "pixi.js";
+import {
+  Application,
+  Assets,
+  Text,
+  Sprite,
+  Container,
+  Graphics,
+} from "pixi.js";
 import { addApples } from "./apples";
+import { Button } from "@pixi/ui";
+
 (async () => {
   // Create a new application
   const app = new Application();
@@ -44,12 +53,47 @@ import { addApples } from "./apples";
   }
   const busket = Sprite.from("shopping-cart");
   let score = 0;
-
-  const counter = new Text(score.toString(), {
-    fontFamily: "Arial",
-    fontSize: 36,
-    fill: 0xffffff,
+  const counter = new Text({
+    text: score,
+    style: {
+      fontFamily: "Arial",
+      fontSize: 24,
+      fill: 0xff1010,
+      align: "center",
+    },
   });
+  const btnContainer = new Container();
+  btnContainer.y = app.screen.height * 0.9;
+  // btnContainer.y = 100;
+  btnContainer.x = 200;
+
+  // Create the button (rectangle)
+  const button = new Graphics();
+
+  // Create the text
+  let startingText = "click to start";
+  const btnText = new Text({
+    text: startingText,
+    fill: 0xffffff,
+    fontSize: 20,
+  });
+  btnText.anchor.set(0.5);
+  // btnText.x = 200 / 2;
+  // btnText.y = 50 / 2;
+
+  btnContainer.addChild(button);
+  btnContainer.addChild(btnText);
+
+  btnContainer.interactive = true;
+  btnContainer.buttonMode = true;
+  btnContainer.cursor = "pointer";
+  let start = false;
+  btnContainer.on("pointerdown", () => {
+    start = true;
+  });
+
+  app.stage.addChild(btnContainer);
+
   app.stage.addChild(counter);
   busket.x = 100;
   busket.anchor.set(0.5);
@@ -57,8 +101,12 @@ import { addApples } from "./apples";
   busket.y = Math.min(minbasketHeight, app.screen.height * 0.7);
   app.stage.addChild(busket);
   let busket_speed = 15;
-  addApples(app, apples);
+  let apple_count = 5;
+  let apple_speed = 2;
+  addApples(app, apples, apple_count, apple_speed);
 
+  app.stage.addChild(button);
+  app.stage.addChild(busket);
   app.ticker.add((time) => {
     // console.log(busket.x, busket.y);
     if (keys.right.pressed) {
@@ -69,6 +117,7 @@ import { addApples } from "./apples";
     } else if (keys.left.pressed) {
       busket.x = Math.max(busket.x - busket_speed, 0);
     }
+    if (!start) return;
     apples.forEach((apple, i) => {
       apple.y += apple.speed;
       const appleLeft = apple.x - apple.width / 2;
@@ -79,7 +128,6 @@ import { addApples } from "./apples";
       const basketRight = busket.x + busket.width / 2;
       const basketTop = busket.y - busket.height / 2;
       const basketBottom = busket.y + busket.height / 2;
-
       if (
         appleRight > basketLeft &&
         appleLeft < basketRight &&
@@ -90,6 +138,16 @@ import { addApples } from "./apples";
         if (app) score++;
         apples.splice(i, 1);
         counter.text = score.toString();
+      }
+      if (apples.length < 1) {
+        start = false;
+        alert("well done now level 2");
+        startingText = `click to start level 2`;
+        apple_speed += 1;
+        apple_count += 2;
+        busket_speed += 0.5;
+        score = 0;
+        addApples(app, apples, apple_count, apple_speed);
       }
     });
   });
